@@ -2,7 +2,6 @@
  *  author: MrPoxipol
  */
 
-var http = require('http');
 var util = require('util');
 // Templates module
 var Mustache = require('mustache');
@@ -22,7 +21,9 @@ const DESCRIPTION_MAX_LEN = 250;
 exports.meta = {
 	name: 'urban-dictionary',
 	commandName: COMMAND_NAME,
-	description: 'Polls UrbanDictionary for given phrase. Returns random definition when the term is not specified'
+	description: "Polls UrbanDictionary for given phrase and " +
+				"returns random definition when the term is not specified. " +
+				"Usage: ud (<phrase>) -- phrase is optional"
 };
 
 function getDefFromJson(data) {
@@ -69,14 +70,8 @@ function fetchTerm(bot, args, random) {
 		url = RANDOM_API_URL;
 	}
 
-	http.get(url, function (response) {
-		var responseParts = [];
-		response.setEncoding('utf8');
-		response.on('data', function (chunk) {
-			responseParts.push(chunk);
-		});
-		response.on('end', function () {
-			var data = responseParts.join('');
+	try {
+		ut.http.get(url, function (data) {
 			var message = getDefFromJson(data);
 			if (message) {
 				sendResponse(bot, args, message);
@@ -87,10 +82,11 @@ function fetchTerm(bot, args, random) {
 				);
 			}
 		});
-	}).on('error', function (e) {
+	}
+	catch (e) {
 		debug.error('HTTP ' + e.message);
 		sendResponse(bot, args, '[] UrbanDictionary is not available at the moment.');
-	});
+	}
 }
 
 exports.onCommand = function (bot, user, channel, command) {
